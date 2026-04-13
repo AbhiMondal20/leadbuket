@@ -1,0 +1,1619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LeadFlow — Modern Lead Management System</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet" />
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          display: ['Syne', 'sans-serif'],
+          body: ['DM Sans', 'sans-serif'],
+        },
+        colors: {
+          brand: {
+            50:  '#eefbf3',
+            100: '#d5f5e3',
+            200: '#aeeacb',
+            300: '#78d9ac',
+            400: '#3fc187',
+            500: '#1ba86c',
+            600: '#0f8a58',
+            700: '#0d6f47',
+            800: '#0d5939',
+            900: '#0b4930',
+          },
+          slate: {
+            950: '#060b14',
+          }
+        },
+        animation: {
+          'float': 'float 6s ease-in-out infinite',
+          'float-slow': 'float 9s ease-in-out infinite',
+          'pulse-slow': 'pulse 4s ease-in-out infinite',
+          'fade-up': 'fadeUp 0.6s ease forwards',
+          'slide-in': 'slideIn 0.5s ease forwards',
+          'shimmer': 'shimmer 2.5s linear infinite',
+        },
+        keyframes: {
+          float: {
+            '0%, 100%': { transform: 'translateY(0)' },
+            '50%': { transform: 'translateY(-18px)' },
+          },
+          fadeUp: {
+            '0%': { opacity: '0', transform: 'translateY(32px)' },
+            '100%': { opacity: '1', transform: 'translateY(0)' },
+          },
+          slideIn: {
+            '0%': { opacity: '0', transform: 'translateX(-24px)' },
+            '100%': { opacity: '1', transform: 'translateX(0)' },
+          },
+          shimmer: {
+            '0%': { backgroundPosition: '-200% 0' },
+            '100%': { backgroundPosition: '200% 0' },
+          },
+        },
+        backgroundImage: {
+          'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+          'mesh-green': 'radial-gradient(at 40% 20%, hsla(150,70%,40%,0.3) 0, transparent 50%), radial-gradient(at 80% 0%, hsla(189,100%,56%,0.15) 0, transparent 50%), radial-gradient(at 0% 50%, hsla(150,60%,35%,0.2) 0, transparent 50%)',
+        }
+      }
+    }
+  }
+</script>
+<style>
+  * { scroll-behavior: smooth; }
+  body { font-family: 'DM Sans', sans-serif; background: #060b14; color: #e2e8f0; overflow-x: hidden; }
+  h1,h2,h3,h4,h5 { font-family: 'Syne', sans-serif; }
+
+  /* Gradient text */
+  .text-gradient {
+    background: linear-gradient(135deg, #3fc187 0%, #78d9ac 50%, #38bdf8 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .text-gradient-warm {
+    background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  /* Glassmorphism */
+  .glass {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .glass-green {
+    background: rgba(27,168,108,0.08);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(63,193,135,0.2);
+  }
+
+  /* Glow effects */
+  .glow-green { box-shadow: 0 0 40px rgba(27,168,108,0.35), 0 0 80px rgba(27,168,108,0.15); }
+  .glow-sm { box-shadow: 0 0 20px rgba(27,168,108,0.25); }
+  .text-glow { text-shadow: 0 0 30px rgba(63,193,135,0.5); }
+
+  /* Noise texture */
+  .noise::before {
+    content: ''; position: absolute; inset: 0; opacity: 0.04; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Scroll animation observer classes */
+  .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-left { opacity: 0; transform: translateX(-40px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal-left.visible { opacity: 1; transform: translateX(0); }
+  .reveal-right { opacity: 0; transform: translateX(40px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal-right.visible { opacity: 1; transform: translateX(0); }
+
+  /* Stagger delays */
+  .delay-100 { transition-delay: 0.1s; }
+  .delay-200 { transition-delay: 0.2s; }
+  .delay-300 { transition-delay: 0.3s; }
+  .delay-400 { transition-delay: 0.4s; }
+  .delay-500 { transition-delay: 0.5s; }
+
+  /* Nav */
+  .nav-scrolled { background: rgba(6,11,20,0.92) !important; backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.07); }
+
+  /* Buttons */
+  .btn-primary {
+    background: linear-gradient(135deg, #1ba86c 0%, #0d8a58 100%);
+    transition: all 0.3s ease;
+    position: relative; overflow: hidden;
+  }
+  .btn-primary::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, #3fc187 0%, #1ba86c 100%);
+    opacity: 0; transition: opacity 0.3s ease;
+  }
+  .btn-primary:hover::after { opacity: 1; }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(27,168,108,0.4); }
+  .btn-primary span { position: relative; z-index: 1; }
+
+  .btn-outline {
+    border: 1.5px solid rgba(63,193,135,0.4);
+    color: #78d9ac;
+    transition: all 0.3s ease;
+    background: transparent;
+  }
+  .btn-outline:hover {
+    border-color: #3fc187;
+    background: rgba(27,168,108,0.1);
+    transform: translateY(-2px);
+  }
+
+  /* Feature cards */
+  .feature-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    transition: all 0.4s ease;
+  }
+  .feature-card:hover {
+    background: rgba(27,168,108,0.07);
+    border-color: rgba(63,193,135,0.3);
+    transform: translateY(-6px);
+    box-shadow: 0 20px 60px rgba(27,168,108,0.1);
+  }
+  .feature-card:hover .feature-icon { transform: scale(1.15) rotate(-5deg); }
+  .feature-icon { transition: transform 0.4s ease; }
+
+  /* Testimonial card */
+  .testimonial-card {
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: all 0.4s ease;
+  }
+  .testimonial-card:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(63,193,135,0.25);
+    transform: translateY(-4px);
+  }
+
+  /* Pricing card */
+  .pricing-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: all 0.4s ease;
+  }
+  .pricing-card:hover { transform: translateY(-8px); }
+  .pricing-popular {
+    background: linear-gradient(180deg, rgba(27,168,108,0.15) 0%, rgba(6,11,20,0.6) 100%);
+    border: 1.5px solid rgba(63,193,135,0.45);
+  }
+
+  /* FAQ */
+  .faq-item { border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.3s ease; }
+  .faq-answer.open { max-height: 300px; }
+  .faq-icon { transition: transform 0.3s ease; }
+  .faq-icon.open { transform: rotate(45deg); }
+
+  /* Marquee */
+  @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  .marquee-track { display: flex; width: max-content; animation: marquee 28s linear infinite; }
+  .marquee-track:hover { animation-play-state: paused; }
+
+  /* Mockup cards */
+  .mockup-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.09);
+    transition: all 0.4s ease;
+  }
+  .mockup-card:hover { transform: translateY(-5px) scale(1.02); border-color: rgba(63,193,135,0.3); }
+
+  /* Grid bg */
+  .grid-bg {
+    background-image: linear-gradient(rgba(63,193,135,0.05) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(63,193,135,0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  /* Steps connector */
+  .step-connector { background: linear-gradient(90deg, #1ba86c, transparent); height: 2px; }
+
+  /* Dot pulse */
+  @keyframes dotPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.6; }
+  }
+  .dot-pulse { animation: dotPulse 2s ease-in-out infinite; }
+  .dot-pulse-2 { animation: dotPulse 2s ease-in-out infinite 0.4s; }
+  .dot-pulse-3 { animation: dotPulse 2s ease-in-out infinite 0.8s; }
+
+  /* Badge */
+  .badge {
+    background: linear-gradient(135deg, rgba(27,168,108,0.2), rgba(56,189,248,0.1));
+    border: 1px solid rgba(63,193,135,0.3);
+  }
+
+  /* Shimmer skeleton */
+  .shimmer-line {
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+    border-radius: 4px;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #060b14; }
+  ::-webkit-scrollbar-thumb { background: #1ba86c; border-radius: 3px; }
+
+  /* Mobile menu */
+  #mobile-menu { transition: all 0.4s ease; max-height: 0; overflow: hidden; }
+  #mobile-menu.open { max-height: 600px; }
+
+  /* Progress bar segments */
+  .progress-bar {
+    height: 6px; border-radius: 3px;
+    background: linear-gradient(90deg, #1ba86c, #38bdf8);
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== NAVBAR ========== -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-500 py-4">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between">
+      <!-- Logo -->
+      <a href="#" class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center glow-sm">
+          <i class="fa-solid fa-bolt text-white text-sm"></i>
+        </div>
+        <span class="font-display font-800 text-xl text-white">Lead<span class="text-gradient">Flow</span></span>
+      </a>
+
+      <!-- Desktop nav -->
+      <div class="hidden md:flex items-center gap-8">
+        <a href="#features" class="text-slate-400 hover:text-white text-sm font-medium transition-colors">Features</a>
+        <a href="#how-it-works" class="text-slate-400 hover:text-white text-sm font-medium transition-colors">How It Works</a>
+        <a href="#showcase" class="text-slate-400 hover:text-white text-sm font-medium transition-colors">Product</a>
+        <a href="#pricing" class="text-slate-400 hover:text-white text-sm font-medium transition-colors">Pricing</a>
+        <a href="#faq" class="text-slate-400 hover:text-white text-sm font-medium transition-colors">FAQ</a>
+      </div>
+
+      <!-- CTA -->
+      <div class="hidden md:flex items-center gap-3">
+        <a href="#" class="btn-outline px-5 py-2.5 rounded-xl text-sm font-medium">Sign In</a>
+        <a href="#" class="btn-primary px-5 py-2.5 rounded-xl text-sm font-medium text-white"><span>Start Free Trial</span></a>
+      </div>
+
+      <!-- Hamburger -->
+      <button id="menu-toggle" class="md:hidden text-slate-400 hover:text-white">
+        <i class="fa-solid fa-bars text-xl" id="menu-icon"></i>
+      </button>
+    </div>
+
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="md:hidden mt-2">
+      <div class="glass rounded-2xl p-5 mt-3 flex flex-col gap-4">
+        <a href="#features" class="text-slate-300 hover:text-white text-sm font-medium mobile-link">Features</a>
+        <a href="#how-it-works" class="text-slate-300 hover:text-white text-sm font-medium mobile-link">How It Works</a>
+        <a href="#showcase" class="text-slate-300 hover:text-white text-sm font-medium mobile-link">Product</a>
+        <a href="#pricing" class="text-slate-300 hover:text-white text-sm font-medium mobile-link">Pricing</a>
+        <a href="#faq" class="text-slate-300 hover:text-white text-sm font-medium mobile-link">FAQ</a>
+        <div class="border-t border-white/10 pt-4 flex flex-col gap-3">
+          <a href="#" class="btn-outline px-5 py-2.5 rounded-xl text-sm font-medium text-center">Sign In</a>
+          <a href="#" class="btn-primary px-5 py-2.5 rounded-xl text-sm font-medium text-white text-center"><span>Start Free Trial</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ========== HERO ========== -->
+<section class="relative min-h-screen flex items-center pt-24 pb-20 overflow-hidden noise">
+  <!-- Background layers -->
+  <div class="absolute inset-0 grid-bg opacity-40"></div>
+  <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-600/20 rounded-full blur-[120px]"></div>
+  <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-sky-600/15 rounded-full blur-[100px]"></div>
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-brand-900/10 rounded-full blur-[140px]"></div>
+
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+    <div class="flex flex-col lg:flex-row items-center gap-16">
+      <!-- Left -->
+      <div class="flex-1 text-center lg:text-left">
+        <div class="inline-flex items-center gap-2 badge px-4 py-2 rounded-full text-xs font-medium text-brand-300 mb-8 animate-fade-up">
+          <span class="w-2 h-2 bg-brand-400 rounded-full dot-pulse inline-block"></span>
+          Trusted by 5,000+ Sales Teams Worldwide
+        </div>
+        <h1 class="font-display text-5xl sm:text-6xl lg:text-7xl font-800 leading-[1.05] text-white mb-6 animate-fade-up" style="animation-delay:0.1s">
+          Convert More<br />Leads with<br /><span class="text-gradient text-glow">Smart CRM</span>
+        </h1>
+        <p class="text-slate-400 text-lg sm:text-xl leading-relaxed mb-10 max-w-xl mx-auto lg:mx-0 animate-fade-up" style="animation-delay:0.2s">
+          LeadFlow centralizes all your leads, automates follow-ups, and gives your sales team the tools to close deals 3× faster — without the complexity.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-up" style="animation-delay:0.3s">
+          <a href="#" class="btn-primary px-8 py-4 rounded-2xl text-base font-semibold text-white inline-flex items-center justify-center gap-2.5">
+            <span><i class="fa-solid fa-rocket mr-1"></i> Start Free Trial</span>
+          </a>
+          <a href="#" class="btn-outline px-8 py-4 rounded-2xl text-base font-semibold inline-flex items-center justify-center gap-2.5">
+            <i class="fa-solid fa-circle-play text-brand-400"></i> Book a Demo
+          </a>
+        </div>
+        <!-- Trust badges -->
+        <div class="flex flex-wrap items-center gap-6 justify-center lg:justify-start mt-10 animate-fade-up" style="animation-delay:0.4s">
+          <div class="flex items-center gap-2 text-slate-400 text-sm">
+            <i class="fa-solid fa-check-circle text-brand-400"></i> No credit card required
+          </div>
+          <div class="flex items-center gap-2 text-slate-400 text-sm">
+            <i class="fa-solid fa-check-circle text-brand-400"></i> 14-day free trial
+          </div>
+          <div class="flex items-center gap-2 text-slate-400 text-sm">
+            <i class="fa-solid fa-check-circle text-brand-400"></i> Cancel anytime
+          </div>
+        </div>
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-6 mt-12 animate-fade-up" style="animation-delay:0.5s">
+          <div class="text-center lg:text-left">
+            <div class="text-3xl font-display font-700 text-white">94%</div>
+            <div class="text-xs text-slate-500 mt-0.5">Faster Follow-ups</div>
+          </div>
+          <div class="text-center lg:text-left">
+            <div class="text-3xl font-display font-700 text-white">3×</div>
+            <div class="text-xs text-slate-500 mt-0.5">More Conversions</div>
+          </div>
+          <div class="text-center lg:text-left">
+            <div class="text-3xl font-display font-700 text-white">5K+</div>
+            <div class="text-xs text-slate-500 mt-0.5">Teams Onboarded</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right — Hero visual -->
+      <div class="flex-1 relative animate-float w-full max-w-lg lg:max-w-none">
+        <!-- Main dashboard card -->
+        <div class="glass rounded-3xl p-6 glow-green relative z-10">
+          <!-- Top bar -->
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <p class="text-xs text-slate-500 font-medium">Sales Dashboard</p>
+              <p class="text-sm font-display font-600 text-white mt-0.5">This Month Overview</p>
+            </div>
+            <div class="flex gap-2">
+              <div class="w-3 h-3 rounded-full bg-red-500/70"></div>
+              <div class="w-3 h-3 rounded-full bg-yellow-500/70"></div>
+              <div class="w-3 h-3 rounded-full bg-green-500/70"></div>
+            </div>
+          </div>
+          <!-- Metric row -->
+          <div class="grid grid-cols-3 gap-3 mb-5">
+            <div class="glass-green rounded-xl p-3">
+              <p class="text-xs text-slate-500">New Leads</p>
+              <p class="text-xl font-display font-700 text-white mt-1">1,284</p>
+              <p class="text-xs text-brand-400 mt-0.5"><i class="fa-solid fa-arrow-up text-[10px]"></i> +18%</p>
+            </div>
+            <div class="glass-green rounded-xl p-3">
+              <p class="text-xs text-slate-500">Converted</p>
+              <p class="text-xl font-display font-700 text-white mt-1">382</p>
+              <p class="text-xs text-brand-400 mt-0.5"><i class="fa-solid fa-arrow-up text-[10px]"></i> +24%</p>
+            </div>
+            <div class="glass-green rounded-xl p-3">
+              <p class="text-xs text-slate-500">Revenue</p>
+              <p class="text-xl font-display font-700 text-white mt-1">$94K</p>
+              <p class="text-xs text-brand-400 mt-0.5"><i class="fa-solid fa-arrow-up text-[10px]"></i> +31%</p>
+            </div>
+          </div>
+          <!-- Pipeline bar -->
+          <div class="mb-5">
+            <div class="flex justify-between text-xs text-slate-500 mb-2"><span>Pipeline Health</span><span class="text-brand-400">78%</span></div>
+            <div class="w-full bg-white/5 rounded-full h-2">
+              <div class="progress-bar" style="width:78%"></div>
+            </div>
+          </div>
+          <!-- Lead list -->
+          <div class="space-y-2.5">
+            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Recent Leads</p>
+            <div class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/5 transition-colors">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-xs font-bold text-white">AK</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-white truncate">Alex Kumar</p>
+                <p class="text-xs text-slate-500">Software Corp · $12K</p>
+              </div>
+              <span class="text-xs px-2.5 py-1 rounded-full bg-brand-500/20 text-brand-400 border border-brand-500/30 whitespace-nowrap">Hot</span>
+            </div>
+            <div class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/5 transition-colors">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-xs font-bold text-white">SM</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-white truncate">Sara Mitchell</p>
+                <p class="text-xs text-slate-500">Retail Plus · $8K</p>
+              </div>
+              <span class="text-xs px-2.5 py-1 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 whitespace-nowrap">Warm</span>
+            </div>
+            <div class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/5 transition-colors">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-500 to-blue-700 flex items-center justify-center text-xs font-bold text-white">RJ</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-white truncate">Raj Johnson</p>
+                <p class="text-xs text-slate-500">Global Tech · $22K</p>
+              </div>
+              <span class="text-xs px-2.5 py-1 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/30 whitespace-nowrap">New</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating notification cards -->
+        <div class="glass absolute -top-6 -right-4 sm:right-4 rounded-2xl p-3.5 flex items-center gap-3 animate-float-slow shadow-xl z-20 border border-white/10">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
+            <i class="fa-brands fa-whatsapp text-white text-sm"></i>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-white">WhatsApp Alert</p>
+            <p class="text-xs text-slate-400">New lead from website</p>
+          </div>
+        </div>
+        <div class="glass absolute -bottom-4 -left-4 sm:left-4 rounded-2xl p-3.5 flex items-center gap-3 animate-float shadow-xl z-20 border border-white/10" style="animation-delay:3s">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center">
+            <i class="fa-solid fa-bell text-white text-sm"></i>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-white">Follow-up Due</p>
+            <p class="text-xs text-slate-400">3 leads need attention</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== BRAND / TRUST ========== -->
+<section class="py-16 border-y border-white/5 relative overflow-hidden">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10 text-center reveal">
+    <p class="text-slate-500 text-sm uppercase tracking-widest font-medium mb-2">Trusted by industry leaders</p>
+    <div class="flex items-center justify-center gap-2">
+      <div class="flex -space-x-1">
+        <div class="w-6 h-6 rounded-full bg-yellow-400 border-2 border-slate-950"></div>
+        <div class="w-6 h-6 rounded-full bg-brand-500 border-2 border-slate-950"></div>
+        <div class="w-6 h-6 rounded-full bg-blue-500 border-2 border-slate-950"></div>
+        <div class="w-6 h-6 rounded-full bg-purple-500 border-2 border-slate-950"></div>
+      </div>
+      <div class="flex text-yellow-400 text-sm"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+      <span class="text-slate-400 text-sm">4.9/5 from 2,400+ reviews</span>
+    </div>
+  </div>
+  <!-- Marquee logos -->
+  <div class="overflow-hidden">
+    <div class="marquee-track">
+      <!-- Logo set 1 -->
+      <div class="flex items-center gap-14 px-7">
+        <div class="flex items-center gap-2.5 opacity-40 hover:opacity-70 transition-opacity">
+          <i class="fa-brands fa-salesforce text-2xl text-blue-400"></i>
+          <span class="font-display font-600 text-slate-300 text-lg">SalesCorp</span>
+        </div>
+        <div class="flex items-center gap-2.5 opacity-40 hover:opacity-70 transition-opacity">
+          <i class="fa-solid fa-building text-xl text-violet-400"></i>
+          <span class="font-display font-600 text-slate-300 text-lg">Nexatech</span>
+        </div>
+        <div class="flex items-center gap-2.5 opacity-40 hover:opacity-70 transition-opacity">
+          <i class="fa-solid fa-rocket text-xl text-orange-400"></i>
+          <span class="font-display font-600 text-slate-300 text-lg">LaunchPad</span>
+        </div>
+        <div class="flex items-center gap-2.5 opacity-40 hover:opacity-70 transition-opacity">
+          <i class="fa-solid fa-globe text-xl text-sky-400"></i>
+          <span class="font-display font-600 text-slate-300 text-lg">GlobalReach</span>
+        </div>
+        <div class="flex items-center gap-2.5 opacity-40 hover:opacity-70 transition-opacity">
+          <i class="fa-solid fa-chart-line text-xl text-brand-400"></i>
+          <span class="font-display font-600 text-slate-300 text-lg">GrowthHive</span>
+        </div>
+        <div class="flex items-center gap-2.5 opacity-40 hover:opacity-70 transition-opacity">
+          <i class="fa-solid fa-briefcase text-xl text-pink-400"></i>
+          <span class="font-display font-600 text-slate-300 text-lg">ProvenCo</span>
+        </div>
+        <div class="flex items-center gap-2.5 opacity-40 hover:opacity-70 transition-opacity">
+          <i class="fa-solid fa-layer-group text-xl text-yellow-400"></i>
+          <span class="font-display font-600 text-slate-300 text-lg">StackWave</span>
+        </div>
+        <div class="flex items-center gap-2.5 opacity-40 hover:opacity-70 transition-opacity">
+          <i class="fa-solid fa-shield text-xl text-teal-400"></i>
+          <span class="font-display font-600 text-slate-300 text-lg">TrustVault</span>
+        </div>
+      </div>
+      <!-- Logo set 2 (duplicate for seamless scroll) -->
+      <div class="flex items-center gap-14 px-7">
+        <div class="flex items-center gap-2.5 opacity-40 hover:opacity-70 transition-opacity">
+          <i class="fa-brands fa-salesforce text-2xl text-blue-400"></i>
+          <span class="font-display font-600 text-slate-300 text-lg">SalesCorp</span>
+        </div>
+        <div class="flex items-center gap-2.5 opacity-40 hover:opacity-70 transition-opacity">
+          <i class="fa-solid fa-building text-xl text-violet-400"></i>
+          <span class="font-display font-600 text-slate-300 text-lg">Nexatech</span>
+        </div>
+        <div class="flex items-center gap-2.5 opacity-40 hover:opacity-70 transition-opacity">
+          <i class="fa-solid fa-rocket text-xl text-orange-400"></i>
+          <span class="font-display font-600 text-slate-300 text-lg">LaunchPad</span>
+        </div>
+        <div class="flex items-center gap-2.5 opacity-40 hover:opacity-70 transition-opacity">
+          <i class="fa-solid fa-globe text-xl text-sky-400"></i>
+          <span class="font-display font-600 text-slate-300 text-lg">GlobalReach</span>
+        </div>
+        <div class="flex items-center gap-2.5 opacity-40 hover:opacity-70 transition-opacity">
+          <i class="fa-solid fa-chart-line text-xl text-brand-400"></i>
+          <span class="font-display font-600 text-slate-300 text-lg">GrowthHive</span>
+        </div>
+        <div class="flex items-center gap-2.5 opacity-40 hover:opacity-70 transition-opacity">
+          <i class="fa-solid fa-briefcase text-xl text-pink-400"></i>
+          <span class="font-display font-600 text-slate-300 text-lg">ProvenCo</span>
+        </div>
+        <div class="flex items-center gap-2.5 opacity-40 hover:opacity-70 transition-opacity">
+          <i class="fa-solid fa-layer-group text-xl text-yellow-400"></i>
+          <span class="font-display font-600 text-slate-300 text-lg">StackWave</span>
+        </div>
+        <div class="flex items-center gap-2.5 opacity-40 hover:opacity-70 transition-opacity">
+          <i class="fa-solid fa-shield text-xl text-teal-400"></i>
+          <span class="font-display font-600 text-slate-300 text-lg">TrustVault</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FEATURES ========== -->
+<section id="features" class="py-24 relative overflow-hidden">
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-px h-32 bg-gradient-to-b from-transparent to-brand-500/50"></div>
+  <div class="absolute inset-0 bg-gradient-radial from-brand-900/10 via-transparent to-transparent"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="text-center mb-16 reveal">
+      <div class="inline-flex items-center gap-2 badge px-4 py-2 rounded-full text-xs font-medium text-brand-300 mb-6">
+        <i class="fa-solid fa-sparkles"></i> Everything You Need
+      </div>
+      <h2 class="font-display text-4xl sm:text-5xl font-700 text-white mb-5">
+        Features Built for <span class="text-gradient">Modern Sales Teams</span>
+      </h2>
+      <p class="text-slate-400 text-lg max-w-2xl mx-auto">
+        From capturing your first lead to closing the deal, LeadFlow has every tool your team needs — in one powerful platform.
+      </p>
+    </div>
+
+    <!-- Feature cards grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+
+      <div class="feature-card rounded-2xl p-6 reveal delay-100">
+        <div class="feature-icon w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center mb-5">
+          <i class="fa-solid fa-magnet text-white"></i>
+        </div>
+        <h3 class="font-display font-600 text-white text-lg mb-2">Lead Capture</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Collect leads from websites, forms, ads, and social media in one place automatically.</p>
+      </div>
+
+      <div class="feature-card rounded-2xl p-6 reveal delay-200">
+        <div class="feature-icon w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-blue-700 flex items-center justify-center mb-5">
+          <i class="fa-solid fa-map-location-dot text-white"></i>
+        </div>
+        <h3 class="font-display font-600 text-white text-lg mb-2">Lead Tracking</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Track every interaction, status change, and touchpoint across the entire buyer journey.</p>
+      </div>
+
+      <div class="feature-card rounded-2xl p-6 reveal delay-300">
+        <div class="feature-icon w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center mb-5">
+          <i class="fa-solid fa-user-check text-white"></i>
+        </div>
+        <h3 class="font-display font-600 text-white text-lg mb-2">Lead Assignment</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Auto-assign leads to reps based on location, score, source, or round-robin rules.</p>
+      </div>
+
+      <div class="feature-card rounded-2xl p-6 reveal delay-400">
+        <div class="feature-icon w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center mb-5">
+          <i class="fa-solid fa-bell-concierge text-white"></i>
+        </div>
+        <h3 class="font-display font-600 text-white text-lg mb-2">Follow-up Reminders</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Never miss a follow-up with smart reminders, alerts, and scheduled communication.</p>
+      </div>
+
+      <div class="feature-card rounded-2xl p-6 reveal delay-100">
+        <div class="feature-icon w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center mb-5">
+          <i class="fa-brands fa-whatsapp text-white"></i>
+        </div>
+        <h3 class="font-display font-600 text-white text-lg mb-2">WhatsApp Integration</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Send messages, follow-ups, and updates via WhatsApp directly from the dashboard.</p>
+      </div>
+
+      <div class="feature-card rounded-2xl p-6 reveal delay-200">
+        <div class="feature-icon w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-700 flex items-center justify-center mb-5">
+          <i class="fa-solid fa-bars-progress text-white"></i>
+        </div>
+        <h3 class="font-display font-600 text-white text-lg mb-2">Sales Pipeline</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Visualize your entire pipeline with a drag-and-drop Kanban board for every stage.</p>
+      </div>
+
+      <div class="feature-card rounded-2xl p-6 reveal delay-300">
+        <div class="feature-icon w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center mb-5">
+          <i class="fa-solid fa-chart-pie text-white"></i>
+        </div>
+        <h3 class="font-display font-600 text-white text-lg mb-2">Reports & Analytics</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Get deep insights with real-time dashboards, conversion funnels, and performance metrics.</p>
+      </div>
+
+      <div class="feature-card rounded-2xl p-6 reveal delay-400">
+        <div class="feature-icon w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-sky-700 flex items-center justify-center mb-5">
+          <i class="fa-solid fa-people-group text-white"></i>
+        </div>
+        <h3 class="font-display font-600 text-white text-lg mb-2">Team Collaboration</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Share notes, tasks, and comments — keep your whole team aligned on every lead.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ========== HOW IT WORKS ========== -->
+<section id="how-it-works" class="py-24 relative overflow-hidden">
+  <div class="absolute inset-0 bg-gradient-to-b from-transparent via-brand-950/30 to-transparent"></div>
+  <div class="absolute right-0 top-1/2 -translate-y-1/2 w-96 h-96 bg-brand-600/10 rounded-full blur-[100px]"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16 reveal">
+      <div class="inline-flex items-center gap-2 badge px-4 py-2 rounded-full text-xs font-medium text-brand-300 mb-6">
+        <i class="fa-solid fa-route"></i> Simple Process
+      </div>
+      <h2 class="font-display text-4xl sm:text-5xl font-700 text-white mb-5">
+        Go from Lead to Deal <span class="text-gradient">in 4 Simple Steps</span>
+      </h2>
+      <p class="text-slate-400 text-lg max-w-2xl mx-auto">No complicated setup. No learning curve. Start converting leads on day one.</p>
+    </div>
+
+    <!-- Steps -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
+      <!-- Connector line (desktop) -->
+      <div class="hidden lg:block absolute top-12 left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r from-brand-600 via-brand-400 to-brand-600 opacity-30"></div>
+
+      <!-- Step 1 -->
+      <div class="relative reveal delay-100">
+        <div class="flex flex-col items-center text-center">
+          <div class="relative z-10 w-24 h-24 rounded-3xl bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center mb-6 glow-sm">
+            <i class="fa-solid fa-magnet text-3xl text-white"></i>
+            <div class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-slate-950 border-2 border-brand-400 flex items-center justify-center text-xs font-display font-700 text-brand-400">1</div>
+          </div>
+          <h3 class="font-display font-600 text-white text-xl mb-3">Capture Leads</h3>
+          <p class="text-slate-400 text-sm leading-relaxed">Automatically pull leads from your website, landing pages, Facebook Ads, and more.</p>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="relative reveal delay-200">
+        <div class="flex flex-col items-center text-center">
+          <div class="relative z-10 w-24 h-24 rounded-3xl bg-gradient-to-br from-sky-600 to-blue-800 flex items-center justify-center mb-6 shadow-lg shadow-sky-900/30">
+            <i class="fa-solid fa-layer-group text-3xl text-white"></i>
+            <div class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-slate-950 border-2 border-sky-400 flex items-center justify-center text-xs font-display font-700 text-sky-400">2</div>
+          </div>
+          <h3 class="font-display font-600 text-white text-xl mb-3">Organize & Assign</h3>
+          <p class="text-slate-400 text-sm leading-relaxed">Categorize leads by status, score, and source — then assign them to the right reps instantly.</p>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="relative reveal delay-300">
+        <div class="flex flex-col items-center text-center">
+          <div class="relative z-10 w-24 h-24 rounded-3xl bg-gradient-to-br from-violet-600 to-purple-800 flex items-center justify-center mb-6 shadow-lg shadow-violet-900/30">
+            <i class="fa-solid fa-comments text-3xl text-white"></i>
+            <div class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-slate-950 border-2 border-violet-400 flex items-center justify-center text-xs font-display font-700 text-violet-400">3</div>
+          </div>
+          <h3 class="font-display font-600 text-white text-xl mb-3">Follow Up Faster</h3>
+          <p class="text-slate-400 text-sm leading-relaxed">Automated reminders, WhatsApp nudges, and email sequences keep leads engaged.</p>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="relative reveal delay-400">
+        <div class="flex flex-col items-center text-center">
+          <div class="relative z-10 w-24 h-24 rounded-3xl bg-gradient-to-br from-yellow-500 to-orange-700 flex items-center justify-center mb-6 shadow-lg shadow-orange-900/30">
+            <i class="fa-solid fa-trophy text-3xl text-white"></i>
+            <div class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-slate-950 border-2 border-yellow-400 flex items-center justify-center text-xs font-display font-700 text-yellow-400">4</div>
+          </div>
+          <h3 class="font-display font-600 text-white text-xl mb-3">Convert & Close</h3>
+          <p class="text-slate-400 text-sm leading-relaxed">Track each deal through your pipeline and celebrate every win with real-time reporting.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== WHY CHOOSE US ========== -->
+<section class="py-24 relative overflow-hidden">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col lg:flex-row items-center gap-16">
+      <!-- Left visual -->
+      <div class="flex-1 reveal-left">
+        <div class="relative">
+          <!-- Big glow -->
+          <div class="absolute inset-0 bg-brand-600/15 rounded-3xl blur-3xl"></div>
+          <!-- Card grid -->
+          <div class="relative grid grid-cols-2 gap-4">
+            <div class="glass rounded-2xl p-5 col-span-2">
+              <div class="flex items-center justify-between mb-3">
+                <p class="text-sm font-display font-600 text-white">Conversion Rate</p>
+                <span class="text-brand-400 text-sm font-display font-700">+47%</span>
+              </div>
+              <div class="flex gap-1.5 items-end h-16">
+                <div class="flex-1 bg-brand-900/50 rounded-t" style="height:45%"></div>
+                <div class="flex-1 bg-brand-800/60 rounded-t" style="height:60%"></div>
+                <div class="flex-1 bg-brand-700/70 rounded-t" style="height:50%"></div>
+                <div class="flex-1 bg-brand-600/80 rounded-t" style="height:75%"></div>
+                <div class="flex-1 bg-brand-500 rounded-t" style="height:65%"></div>
+                <div class="flex-1 bg-gradient-to-t from-brand-600 to-brand-400 rounded-t" style="height:100%"></div>
+                <div class="flex-1 bg-gradient-to-t from-brand-500 to-brand-300 rounded-t" style="height:90%"></div>
+              </div>
+            </div>
+            <div class="glass-green rounded-2xl p-5">
+              <div class="w-10 h-10 rounded-xl bg-brand-600/30 flex items-center justify-center mb-3">
+                <i class="fa-solid fa-bolt text-brand-400"></i>
+              </div>
+              <p class="text-white font-display font-600 text-2xl">2 min</p>
+              <p class="text-slate-400 text-xs mt-1">Average setup time</p>
+            </div>
+            <div class="glass rounded-2xl p-5">
+              <div class="w-10 h-10 rounded-xl bg-sky-600/30 flex items-center justify-center mb-3">
+                <i class="fa-solid fa-mobile-screen text-sky-400"></i>
+              </div>
+              <p class="text-white font-display font-600 text-2xl">100%</p>
+              <p class="text-slate-400 text-xs mt-1">Mobile friendly</p>
+            </div>
+            <div class="glass rounded-2xl p-5">
+              <div class="w-10 h-10 rounded-xl bg-violet-600/30 flex items-center justify-center mb-3">
+                <i class="fa-solid fa-shield-halved text-violet-400"></i>
+              </div>
+              <p class="text-white font-display font-600 text-2xl">SOC2</p>
+              <p class="text-slate-400 text-xs mt-1">Certified & secure</p>
+            </div>
+            <div class="glass rounded-2xl p-5">
+              <div class="w-10 h-10 rounded-xl bg-orange-600/30 flex items-center justify-center mb-3">
+                <i class="fa-solid fa-robot text-orange-400"></i>
+              </div>
+              <p class="text-white font-display font-600 text-2xl">Smart</p>
+              <p class="text-slate-400 text-xs mt-1">AI-driven automation</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right content -->
+      <div class="flex-1 reveal-right">
+        <div class="inline-flex items-center gap-2 badge px-4 py-2 rounded-full text-xs font-medium text-brand-300 mb-6">
+          <i class="fa-solid fa-crown"></i> Why LeadFlow
+        </div>
+        <h2 class="font-display text-4xl sm:text-5xl font-700 text-white mb-6">
+          The CRM That Fits <span class="text-gradient">Your Workflow</span>
+        </h2>
+        <p class="text-slate-400 text-lg leading-relaxed mb-10">
+          Most CRMs slow you down. LeadFlow was built from the ground up to speed up your team's day — not add more complexity.
+        </p>
+        <div class="space-y-5">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-brand-500/20 border border-brand-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i class="fa-solid fa-gauge-high text-brand-400 text-sm"></i>
+            </div>
+            <div>
+              <h4 class="font-display font-600 text-white mb-1">Set up in minutes, not weeks</h4>
+              <p class="text-slate-400 text-sm">Import your existing leads and go live in under 2 minutes. Zero training needed.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i class="fa-solid fa-wand-magic-sparkles text-sky-400 text-sm"></i>
+            </div>
+            <div>
+              <h4 class="font-display font-600 text-white mb-1">Smart automation that works for you</h4>
+              <p class="text-slate-400 text-sm">Trigger follow-ups, assign leads, and send reminders — all on autopilot.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i class="fa-solid fa-arrows-up-to-line text-violet-400 text-sm"></i>
+            </div>
+            <div>
+              <h4 class="font-display font-600 text-white mb-1">Scales from startup to enterprise</h4>
+              <p class="text-slate-400 text-sm">Start with one rep or deploy for 500 agents — LeadFlow handles any team size.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-yellow-500/20 border border-yellow-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i class="fa-solid fa-headset text-yellow-400 text-sm"></i>
+            </div>
+            <div>
+              <h4 class="font-display font-600 text-white mb-1">24/7 dedicated support</h4>
+              <p class="text-slate-400 text-sm">Real humans ready to help via chat, email, or phone — whenever you need us.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== PRODUCT SHOWCASE ========== -->
+<section id="showcase" class="py-24 relative overflow-hidden">
+  <div class="absolute inset-0 bg-gradient-to-b from-transparent via-slate-900/50 to-transparent"></div>
+  <div class="absolute left-0 top-1/2 -translate-y-1/2 w-96 h-96 bg-sky-600/10 rounded-full blur-[120px]"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16 reveal">
+      <div class="inline-flex items-center gap-2 badge px-4 py-2 rounded-full text-xs font-medium text-brand-300 mb-6">
+        <i class="fa-solid fa-eye"></i> Product Preview
+      </div>
+      <h2 class="font-display text-4xl sm:text-5xl font-700 text-white mb-5">
+        Beautiful Tools Your Team <span class="text-gradient">Will Actually Use</span>
+      </h2>
+      <p class="text-slate-400 text-lg max-w-2xl mx-auto">Powerful under the hood. Clean and intuitive on the surface.</p>
+    </div>
+
+    <!-- Showcase cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <!-- Leads list showcase -->
+      <div class="mockup-card rounded-3xl p-6 reveal-left">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <p class="font-display font-600 text-white text-lg">Leads Management</p>
+            <p class="text-slate-400 text-xs mt-0.5">All leads in one organized view</p>
+          </div>
+          <button class="btn-primary px-4 py-2 rounded-xl text-xs font-medium text-white"><span><i class="fa-solid fa-plus mr-1"></i>Add Lead</span></button>
+        </div>
+        <!-- Search bar -->
+        <div class="flex items-center gap-2 glass rounded-xl px-4 py-2.5 mb-4">
+          <i class="fa-solid fa-magnifying-glass text-slate-500 text-sm"></i>
+          <span class="text-slate-500 text-sm">Search leads...</span>
+        </div>
+        <!-- Lead rows -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/8 transition-colors">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-xs font-700 text-white font-display flex-shrink-0">TK</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-white truncate">Thomas King</p>
+              <p class="text-xs text-slate-500">Enterprise Software · +1 555 0192</p>
+            </div>
+            <div class="text-right flex-shrink-0">
+              <span class="text-xs px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-400 border border-brand-500/30">Hot</span>
+              <p class="text-xs text-slate-500 mt-1">$28K</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/8 transition-colors">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-500 to-rose-700 flex items-center justify-center text-xs font-700 text-white font-display flex-shrink-0">LP</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-white truncate">Linda Park</p>
+              <p class="text-xs text-slate-500">Healthcare Inc · +1 555 0147</p>
+            </div>
+            <div class="text-right flex-shrink-0">
+              <span class="text-xs px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">Warm</span>
+              <p class="text-xs text-slate-500 mt-1">$15K</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/8 transition-colors">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-700 flex items-center justify-center text-xs font-700 text-white font-display flex-shrink-0">MN</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-white truncate">Mark Nelson</p>
+              <p class="text-xs text-slate-500">Retail Group · +1 555 0233</p>
+            </div>
+            <div class="text-right flex-shrink-0">
+              <span class="text-xs px-2 py-0.5 rounded-full bg-slate-500/20 text-slate-400 border border-slate-500/30">Cold</span>
+              <p class="text-xs text-slate-500 mt-1">$5K</p>
+            </div>
+          </div>
+        </div>
+        <!-- Shimmer loading row -->
+        <div class="flex items-center gap-3 p-3 mt-3">
+          <div class="shimmer-line w-9 h-9 rounded-xl flex-shrink-0"></div>
+          <div class="flex-1 space-y-1.5">
+            <div class="shimmer-line h-3 w-3/4"></div>
+            <div class="shimmer-line h-2.5 w-1/2"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pipeline showcase -->
+      <div class="mockup-card rounded-3xl p-6 reveal-right">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <p class="font-display font-600 text-white text-lg">Sales Pipeline</p>
+            <p class="text-slate-400 text-xs mt-0.5">Drag & drop Kanban board</p>
+          </div>
+          <div class="flex gap-1.5">
+            <div class="w-7 h-7 rounded-lg glass flex items-center justify-center"><i class="fa-solid fa-table-columns text-slate-400 text-xs"></i></div>
+            <div class="w-7 h-7 rounded-lg bg-brand-500/20 border border-brand-500/30 flex items-center justify-center"><i class="fa-solid fa-list text-brand-400 text-xs"></i></div>
+          </div>
+        </div>
+        <!-- Pipeline columns -->
+        <div class="grid grid-cols-4 gap-2">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-xs font-medium text-slate-400">New</p>
+              <span class="text-xs text-slate-500 glass px-1.5 py-0.5 rounded">12</span>
+            </div>
+            <div class="bg-white/5 rounded-xl p-2.5 border-l-2 border-sky-400">
+              <p class="text-xs font-medium text-white truncate">A. Sharma</p>
+              <p class="text-xs text-slate-500 mt-1">$18K</p>
+            </div>
+            <div class="bg-white/5 rounded-xl p-2.5 border-l-2 border-sky-400">
+              <p class="text-xs font-medium text-white truncate">B. Chen</p>
+              <p class="text-xs text-slate-500 mt-1">$9K</p>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-xs font-medium text-slate-400">Contacted</p>
+              <span class="text-xs text-slate-500 glass px-1.5 py-0.5 rounded">8</span>
+            </div>
+            <div class="bg-white/5 rounded-xl p-2.5 border-l-2 border-yellow-400">
+              <p class="text-xs font-medium text-white truncate">C. Davis</p>
+              <p class="text-xs text-slate-500 mt-1">$32K</p>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-xs font-medium text-slate-400">Proposal</p>
+              <span class="text-xs text-slate-500 glass px-1.5 py-0.5 rounded">5</span>
+            </div>
+            <div class="bg-white/5 rounded-xl p-2.5 border-l-2 border-violet-400">
+              <p class="text-xs font-medium text-white truncate">D. Wilson</p>
+              <p class="text-xs text-slate-500 mt-1">$45K</p>
+            </div>
+            <div class="bg-white/5 rounded-xl p-2.5 border-l-2 border-violet-400">
+              <p class="text-xs font-medium text-white truncate">E. Brown</p>
+              <p class="text-xs text-slate-500 mt-1">$22K</p>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-xs font-medium text-slate-400">Won</p>
+              <span class="text-xs text-slate-500 glass px-1.5 py-0.5 rounded">3</span>
+            </div>
+            <div class="bg-brand-900/40 rounded-xl p-2.5 border-l-2 border-brand-400">
+              <p class="text-xs font-medium text-white truncate">F. Taylor</p>
+              <p class="text-xs text-brand-400 mt-1">$61K ✓</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Second row showcase -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Follow-up showcase -->
+      <div class="mockup-card rounded-3xl p-6 reveal delay-100">
+        <p class="font-display font-600 text-white text-lg mb-1">Follow-up Queue</p>
+        <p class="text-slate-400 text-xs mb-4">Today's scheduled actions</p>
+        <div class="space-y-3">
+          <div class="flex items-center gap-3 p-3 rounded-xl glass-green">
+            <div class="w-8 h-8 rounded-lg bg-brand-500/30 flex items-center justify-center flex-shrink-0">
+              <i class="fa-brands fa-whatsapp text-brand-400 text-sm"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-medium text-white truncate">WhatsApp — T. King</p>
+              <p class="text-xs text-slate-500">Due in 30 min</p>
+            </div>
+            <div class="w-2 h-2 rounded-full bg-brand-400 dot-pulse flex-shrink-0"></div>
+          </div>
+          <div class="flex items-center gap-3 p-3 rounded-xl bg-white/5">
+            <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
+              <i class="fa-solid fa-phone text-yellow-400 text-sm"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-medium text-white truncate">Call — L. Park</p>
+              <p class="text-xs text-slate-500">Due in 2 hrs</p>
+            </div>
+            <div class="w-2 h-2 rounded-full bg-yellow-400 dot-pulse-2 flex-shrink-0"></div>
+          </div>
+          <div class="flex items-center gap-3 p-3 rounded-xl bg-white/5">
+            <div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center flex-shrink-0">
+              <i class="fa-solid fa-envelope text-sky-400 text-sm"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-medium text-white truncate">Email — M. Nelson</p>
+              <p class="text-xs text-slate-500">Due tomorrow</p>
+            </div>
+            <div class="w-2 h-2 rounded-full bg-sky-400 dot-pulse-3 flex-shrink-0"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reports showcase -->
+      <div class="mockup-card rounded-3xl p-6 reveal delay-200 md:col-span-2">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <p class="font-display font-600 text-white text-lg">Analytics Overview</p>
+            <p class="text-slate-400 text-xs mt-0.5">Last 30 days</p>
+          </div>
+          <div class="badge px-3 py-1.5 rounded-xl text-xs text-brand-300 font-medium">
+            <i class="fa-solid fa-arrow-up mr-1"></i>+32% vs last month
+          </div>
+        </div>
+        <!-- Mini chart -->
+        <div class="flex items-end gap-1.5 h-20 mb-4">
+          <div class="flex-1 bg-brand-900/50 rounded-t" style="height:40%"></div>
+          <div class="flex-1 bg-brand-800/60 rounded-t" style="height:55%"></div>
+          <div class="flex-1 bg-brand-700/70 rounded-t" style="height:45%"></div>
+          <div class="flex-1 bg-brand-600/80 rounded-t" style="height:70%"></div>
+          <div class="flex-1 bg-brand-500 rounded-t" style="height:60%"></div>
+          <div class="flex-1 bg-gradient-to-t from-brand-600 to-brand-400 rounded-t" style="height:85%"></div>
+          <div class="flex-1 bg-brand-500 rounded-t" style="height:78%"></div>
+          <div class="flex-1 bg-brand-600/80 rounded-t" style="height:65%"></div>
+          <div class="flex-1 bg-brand-500 rounded-t" style="height:90%"></div>
+          <div class="flex-1 bg-gradient-to-t from-brand-600 to-brand-300 rounded-t" style="height:100%"></div>
+          <div class="flex-1 bg-brand-500 rounded-t" style="height:88%"></div>
+          <div class="flex-1 bg-gradient-to-t from-brand-600 to-brand-400 rounded-t" style="height:95%"></div>
+        </div>
+        <!-- Metric pills -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="glass rounded-xl p-3 text-center">
+            <p class="text-xs text-slate-500 mb-1">Leads In</p>
+            <p class="text-lg font-display font-700 text-white">1,284</p>
+          </div>
+          <div class="glass-green rounded-xl p-3 text-center">
+            <p class="text-xs text-slate-500 mb-1">Converted</p>
+            <p class="text-lg font-display font-700 text-brand-400">382</p>
+          </div>
+          <div class="glass rounded-xl p-3 text-center">
+            <p class="text-xs text-slate-500 mb-1">Revenue</p>
+            <p class="text-lg font-display font-700 text-white">$94K</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== BENEFITS ========== -->
+<section class="py-24 relative overflow-hidden">
+  <div class="absolute inset-0 bg-gradient-to-r from-brand-950/30 via-transparent to-brand-950/30"></div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16 reveal">
+      <div class="inline-flex items-center gap-2 badge px-4 py-2 rounded-full text-xs font-medium text-brand-300 mb-6">
+        <i class="fa-solid fa-star"></i> Business Impact
+      </div>
+      <h2 class="font-display text-4xl sm:text-5xl font-700 text-white mb-5">
+        Real Results for <span class="text-gradient">Real Businesses</span>
+      </h2>
+      <p class="text-slate-400 text-lg max-w-2xl mx-auto">Companies using LeadFlow see measurable improvements across their entire sales funnel within the first 30 days.</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+      <div class="feature-card rounded-2xl p-6 text-center reveal delay-100">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center mx-auto mb-4 glow-sm">
+          <i class="fa-solid fa-chart-line text-white text-xl"></i>
+        </div>
+        <p class="text-3xl font-display font-700 text-white mb-1">3×</p>
+        <p class="text-brand-400 font-medium text-sm mb-2">More Conversions</p>
+        <p class="text-slate-500 text-xs leading-relaxed">Turn more inquiries into paying customers with smarter workflows.</p>
+      </div>
+      <div class="feature-card rounded-2xl p-6 text-center reveal delay-200">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-700 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-sky-900/30">
+          <i class="fa-solid fa-bell text-white text-xl"></i>
+        </div>
+        <p class="text-3xl font-display font-700 text-white mb-1">0</p>
+        <p class="text-sky-400 font-medium text-sm mb-2">Missed Follow-ups</p>
+        <p class="text-slate-500 text-xs leading-relaxed">Every lead gets the right attention at the perfect time, automatically.</p>
+      </div>
+      <div class="feature-card rounded-2xl p-6 text-center reveal delay-300">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-violet-900/30">
+          <i class="fa-solid fa-clock text-white text-xl"></i>
+        </div>
+        <p class="text-3xl font-display font-700 text-white mb-1">6h</p>
+        <p class="text-violet-400 font-medium text-sm mb-2">Saved Per Rep/Week</p>
+        <p class="text-slate-500 text-xs leading-relaxed">Eliminate manual data entry and repetitive admin tasks forever.</p>
+      </div>
+      <div class="feature-card rounded-2xl p-6 text-center reveal delay-400">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-yellow-900/30">
+          <i class="fa-solid fa-bolt text-white text-xl"></i>
+        </div>
+        <p class="text-3xl font-display font-700 text-white mb-1">5 min</p>
+        <p class="text-yellow-400 font-medium text-sm mb-2">Response Time</p>
+        <p class="text-slate-500 text-xs leading-relaxed">Respond to new leads 10× faster than your competition.</p>
+      </div>
+      <div class="feature-card rounded-2xl p-6 text-center reveal delay-500">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-700 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-pink-900/30">
+          <i class="fa-solid fa-eye text-white text-xl"></i>
+        </div>
+        <p class="text-3xl font-display font-700 text-white mb-1">100%</p>
+        <p class="text-pink-400 font-medium text-sm mb-2">Full Visibility</p>
+        <p class="text-slate-500 text-xs leading-relaxed">Track every lead, every stage, every rep — in real time.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== TESTIMONIALS ========== -->
+<section class="py-24 relative overflow-hidden">
+  <div class="absolute right-0 top-1/3 w-96 h-96 bg-violet-600/10 rounded-full blur-[120px]"></div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16 reveal">
+      <div class="inline-flex items-center gap-2 badge px-4 py-2 rounded-full text-xs font-medium text-brand-300 mb-6">
+        <i class="fa-solid fa-heart"></i> Customer Stories
+      </div>
+      <h2 class="font-display text-4xl sm:text-5xl font-700 text-white mb-5">
+        Loved by <span class="text-gradient">Sales Teams</span> Everywhere
+      </h2>
+      <p class="text-slate-400 text-lg max-w-xl mx-auto">Don't take our word for it — here's what our customers are saying.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Testimonial 1 -->
+      <div class="testimonial-card rounded-3xl p-7 reveal delay-100">
+        <div class="flex text-yellow-400 text-sm gap-0.5 mb-5">
+          <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+        </div>
+        <p class="text-slate-300 text-sm leading-relaxed mb-6 italic">"LeadFlow completely transformed how we handle inbound leads. Our conversion rate jumped from 12% to 37% in just two months. The WhatsApp integration alone is worth it."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-sm font-700 text-white font-display">RK</div>
+          <div>
+            <p class="font-display font-600 text-white text-sm">Rahul Khanna</p>
+            <p class="text-slate-500 text-xs">Head of Sales · TechVenture Ltd</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Testimonial 2 -->
+      <div class="testimonial-card rounded-3xl p-7 reveal delay-200" style="border-color:rgba(63,193,135,0.2);">
+        <div class="flex text-yellow-400 text-sm gap-0.5 mb-5">
+          <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+        </div>
+        <p class="text-slate-300 text-sm leading-relaxed mb-6 italic">"We tried 4 different CRMs before LeadFlow. Nothing else came close. Setup was done in an afternoon and my team was productive from day one. The pipeline view is chef's kiss."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-sm font-700 text-white font-display">SM</div>
+          <div>
+            <p class="font-display font-600 text-white text-sm">Sophie Martinez</p>
+            <p class="text-slate-500 text-xs">Founder · GrowthLab Agency</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Testimonial 3 -->
+      <div class="testimonial-card rounded-3xl p-7 reveal delay-300">
+        <div class="flex text-yellow-400 text-sm gap-0.5 mb-5">
+          <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+        </div>
+        <p class="text-slate-300 text-sm leading-relaxed mb-6 italic">"The follow-up reminders have been a game changer. We used to lose leads because reps forgot to call back. Now we close nearly every warm lead. Incredible ROI."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-full bg-gradient-to-br from-sky-500 to-blue-700 flex items-center justify-center text-sm font-700 text-white font-display">JL</div>
+          <div>
+            <p class="font-display font-600 text-white text-sm">James Liu</p>
+            <p class="text-slate-500 text-xs">VP Sales · Meridian Realty</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Testimonial 4 -->
+      <div class="testimonial-card rounded-3xl p-7 reveal delay-100">
+        <div class="flex text-yellow-400 text-sm gap-0.5 mb-5">
+          <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
+        </div>
+        <p class="text-slate-300 text-sm leading-relaxed mb-6 italic">"Our real estate team manages 200+ leads a week. LeadFlow keeps everything organized and ensures no one falls through the cracks. Support team is also incredibly responsive."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-sm font-700 text-white font-display">PA</div>
+          <div>
+            <p class="font-display font-600 text-white text-sm">Priya Agarwal</p>
+            <p class="text-slate-500 text-xs">Team Lead · HomePath Realtors</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Testimonial 5 -->
+      <div class="testimonial-card rounded-3xl p-7 reveal delay-200">
+        <div class="flex text-yellow-400 text-sm gap-0.5 mb-5">
+          <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+        </div>
+        <p class="text-slate-300 text-sm leading-relaxed mb-6 italic">"The analytics are phenomenal. I finally have clear data on which sources generate the best leads, and which rep closes the most deals. Decision-making has never been easier."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-full bg-gradient-to-br from-teal-500 to-cyan-700 flex items-center justify-center text-sm font-700 text-white font-display">DW</div>
+          <div>
+            <p class="font-display font-600 text-white text-sm">Daniel Webb</p>
+            <p class="text-slate-500 text-xs">CEO · SwiftCommerce</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Testimonial 6 -->
+      <div class="testimonial-card rounded-3xl p-7 reveal delay-300">
+        <div class="flex text-yellow-400 text-sm gap-0.5 mb-5">
+          <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+        </div>
+        <p class="text-slate-300 text-sm leading-relaxed mb-6 italic">"Switching to LeadFlow was the best business decision of this quarter. The mobile app means my team can update lead status from anywhere. Absolutely love it."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-700 flex items-center justify-center text-sm font-700 text-white font-display">NB</div>
+          <div>
+            <p class="font-display font-600 text-white text-sm">Natalie Brooks</p>
+            <p class="text-slate-500 text-xs">Sales Director · CloudNine Media</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== PRICING ========== -->
+<section id="pricing" class="py-24 relative overflow-hidden">
+  <div class="absolute inset-0 bg-gradient-to-b from-transparent via-slate-900/60 to-transparent"></div>
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-900/20 rounded-full blur-[120px]"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16 reveal">
+      <div class="inline-flex items-center gap-2 badge px-4 py-2 rounded-full text-xs font-medium text-brand-300 mb-6">
+        <i class="fa-solid fa-tag"></i> Simple Pricing
+      </div>
+      <h2 class="font-display text-4xl sm:text-5xl font-700 text-white mb-5">
+        Plans That <span class="text-gradient">Grow With You</span>
+      </h2>
+      <p class="text-slate-400 text-lg max-w-xl mx-auto">No hidden fees. Cancel anytime. Start free and upgrade when you're ready.</p>
+      <!-- Toggle -->
+      <div class="flex items-center justify-center gap-4 mt-8">
+        <span class="text-slate-300 text-sm font-medium">Monthly</span>
+        <button id="billing-toggle" onclick="toggleBilling()" class="relative w-14 h-7 rounded-full bg-brand-600 transition-all">
+          <div id="toggle-dot" class="absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-transform duration-300"></div>
+        </button>
+        <span class="text-slate-300 text-sm font-medium">Yearly <span class="text-brand-400 text-xs font-semibold">(Save 20%)</span></span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+      <!-- Starter -->
+      <div class="pricing-card rounded-3xl p-8 reveal delay-100">
+        <div class="mb-8">
+          <p class="text-slate-400 text-sm font-medium mb-2">Starter</p>
+          <div class="flex items-end gap-1 mb-1">
+            <span class="text-5xl font-display font-700 text-white" id="starter-price">$29</span>
+            <span class="text-slate-400 text-sm mb-2">/month</span>
+          </div>
+          <p class="text-slate-500 text-sm">Perfect for solo reps and small teams just getting started.</p>
+        </div>
+        <div class="space-y-3 mb-8">
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">Up to 500 leads/month</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">3 team members</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">Lead capture & tracking</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">Email follow-up reminders</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">Basic pipeline view</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">Email support</span></div>
+          <div class="flex items-center gap-3 text-sm text-slate-600"><i class="fa-solid fa-xmark w-4"></i><span>WhatsApp integration</span></div>
+          <div class="flex items-center gap-3 text-sm text-slate-600"><i class="fa-solid fa-xmark w-4"></i><span>Advanced analytics</span></div>
+          <div class="flex items-center gap-3 text-sm text-slate-600"><i class="fa-solid fa-xmark w-4"></i><span>API access</span></div>
+        </div>
+        <a href="#" class="btn-outline w-full py-3.5 rounded-2xl text-sm font-semibold text-center block">Get Started Free</a>
+      </div>
+
+      <!-- Professional (popular) -->
+      <div class="pricing-card pricing-popular rounded-3xl p-8 reveal delay-200 relative -mt-4">
+        <div class="absolute -top-4 left-1/2 -translate-x-1/2 badge px-5 py-2 rounded-full text-xs font-600 text-brand-300 whitespace-nowrap border border-brand-400/40">
+          <i class="fa-solid fa-star text-brand-400 mr-1.5"></i>Most Popular
+        </div>
+        <div class="mb-8">
+          <p class="text-brand-400 text-sm font-medium mb-2">Professional</p>
+          <div class="flex items-end gap-1 mb-1">
+            <span class="text-5xl font-display font-700 text-white" id="pro-price">$79</span>
+            <span class="text-slate-400 text-sm mb-2">/month</span>
+          </div>
+          <p class="text-slate-500 text-sm">For growing teams that need powerful automation and insights.</p>
+        </div>
+        <div class="space-y-3 mb-8">
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">Unlimited leads</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">15 team members</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">All Starter features</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">WhatsApp integration</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">Advanced analytics & reports</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">Smart lead scoring</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">Automated sequences</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">Priority chat support</span></div>
+          <div class="flex items-center gap-3 text-sm text-slate-600"><i class="fa-solid fa-xmark w-4"></i><span>Custom API access</span></div>
+        </div>
+        <a href="#" class="btn-primary w-full py-3.5 rounded-2xl text-sm font-semibold text-white text-center block"><span>Start 14-Day Free Trial</span></a>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="pricing-card rounded-3xl p-8 reveal delay-300">
+        <div class="mb-8">
+          <p class="text-slate-400 text-sm font-medium mb-2">Enterprise</p>
+          <div class="flex items-end gap-1 mb-1">
+            <span class="text-4xl font-display font-700 text-white">Custom</span>
+          </div>
+          <p class="text-slate-500 text-sm">Tailored for large teams with custom workflows and compliance needs.</p>
+        </div>
+        <div class="space-y-3 mb-8">
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">Unlimited leads & users</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">All Professional features</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">Custom API & webhooks</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">SSO & enterprise security</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">Dedicated account manager</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">Custom onboarding & training</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">SLA & 99.99% uptime</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">GDPR & compliance tools</span></div>
+          <div class="flex items-center gap-3 text-sm"><i class="fa-solid fa-check text-brand-400 w-4"></i><span class="text-slate-300">24/7 phone support</span></div>
+        </div>
+        <a href="#" class="btn-outline w-full py-3.5 rounded-2xl text-sm font-semibold text-center block">Contact Sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FAQ ========== -->
+<section id="faq" class="py-24 relative overflow-hidden">
+  <div class="absolute left-0 bottom-0 w-96 h-96 bg-brand-800/10 rounded-full blur-[100px]"></div>
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-14 reveal">
+      <div class="inline-flex items-center gap-2 badge px-4 py-2 rounded-full text-xs font-medium text-brand-300 mb-6">
+        <i class="fa-solid fa-circle-question"></i> FAQ
+      </div>
+      <h2 class="font-display text-4xl sm:text-5xl font-700 text-white mb-5">
+        Questions? <span class="text-gradient">We've Got Answers</span>
+      </h2>
+      <p class="text-slate-400 text-lg">Everything you need to know before you get started.</p>
+    </div>
+
+    <div class="space-y-1 reveal">
+      <!-- FAQ items -->
+      <div class="faq-item">
+        <button class="faq-trigger w-full text-left py-5 flex items-center justify-between gap-4 group">
+          <span class="font-display font-600 text-white group-hover:text-brand-300 transition-colors text-sm sm:text-base">How long does it take to set up LeadFlow?</span>
+          <i class="fa-solid fa-plus faq-icon text-brand-400 text-sm flex-shrink-0"></i>
+        </button>
+        <div class="faq-answer pb-5">
+          <p class="text-slate-400 text-sm leading-relaxed">Most teams are up and running in under 30 minutes. You can import your existing leads via CSV, connect your lead sources, and start managing your pipeline right away. We also offer a guided onboarding flow that walks you through every step.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-trigger w-full text-left py-5 flex items-center justify-between gap-4 group">
+          <span class="font-display font-600 text-white group-hover:text-brand-300 transition-colors text-sm sm:text-base">Do I need a credit card for the free trial?</span>
+          <i class="fa-solid fa-plus faq-icon text-brand-400 text-sm flex-shrink-0"></i>
+        </button>
+        <div class="faq-answer pb-5">
+          <p class="text-slate-400 text-sm leading-relaxed">No credit card required to start your 14-day free trial. You get full access to all Professional features during the trial. We'll only ask for payment details when you decide to upgrade.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-trigger w-full text-left py-5 flex items-center justify-between gap-4 group">
+          <span class="font-display font-600 text-white group-hover:text-brand-300 transition-colors text-sm sm:text-base">What integrations does LeadFlow support?</span>
+          <i class="fa-solid fa-plus faq-icon text-brand-400 text-sm flex-shrink-0"></i>
+        </button>
+        <div class="faq-answer pb-5">
+          <p class="text-slate-400 text-sm leading-relaxed">LeadFlow integrates with WhatsApp Business, Google Ads, Facebook Lead Ads, Zapier, Slack, Gmail, Outlook, Mailchimp, HubSpot, and 50+ more tools. Enterprise plans include custom API access and webhooks for any integration you need.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-trigger w-full text-left py-5 flex items-center justify-between gap-4 group">
+          <span class="font-display font-600 text-white group-hover:text-brand-300 transition-colors text-sm sm:text-base">How many team members can I add?</span>
+          <i class="fa-solid fa-plus faq-icon text-brand-400 text-sm flex-shrink-0"></i>
+        </button>
+        <div class="faq-answer pb-5">
+          <p class="text-slate-400 text-sm leading-relaxed">The Starter plan supports up to 3 team members, the Professional plan allows up to 15 members, and the Enterprise plan supports unlimited users. You can also set granular role-based permissions for each team member.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-trigger w-full text-left py-5 flex items-center justify-between gap-4 group">
+          <span class="font-display font-600 text-white group-hover:text-brand-300 transition-colors text-sm sm:text-base">Can I change my plan or cancel anytime?</span>
+          <i class="fa-solid fa-plus faq-icon text-brand-400 text-sm flex-shrink-0"></i>
+        </button>
+        <div class="faq-answer pb-5">
+          <p class="text-slate-400 text-sm leading-relaxed">Absolutely. You can upgrade, downgrade, or cancel your plan at any time from your account settings — no questions asked. If you cancel, you retain access until the end of your billing period. We offer prorated refunds on yearly plans.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-trigger w-full text-left py-5 flex items-center justify-between gap-4 group">
+          <span class="font-display font-600 text-white group-hover:text-brand-300 transition-colors text-sm sm:text-base">Is my data secure?</span>
+          <i class="fa-solid fa-plus faq-icon text-brand-400 text-sm flex-shrink-0"></i>
+        </button>
+        <div class="faq-answer pb-5">
+          <p class="text-slate-400 text-sm leading-relaxed">Yes. LeadFlow is SOC2 Type II certified and uses 256-bit AES encryption for data at rest and TLS 1.3 for data in transit. We host on AWS with 99.99% uptime SLA, automated daily backups, and full GDPR compliance tools.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-trigger w-full text-left py-5 flex items-center justify-between gap-4 group">
+          <span class="font-display font-600 text-white group-hover:text-brand-300 transition-colors text-sm sm:text-base">What kind of support is available?</span>
+          <i class="fa-solid fa-plus faq-icon text-brand-400 text-sm flex-shrink-0"></i>
+        </button>
+        <div class="faq-answer pb-5">
+          <p class="text-slate-400 text-sm leading-relaxed">All plans include email support with 24-hour response times. Professional plans get priority live chat support. Enterprise customers get a dedicated account manager, onboarding specialist, and 24/7 phone support with guaranteed 2-hour response SLA.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FINAL CTA ========== -->
+<section class="py-28 relative overflow-hidden">
+  <div class="absolute inset-0 bg-gradient-to-br from-brand-950 via-slate-950 to-slate-950"></div>
+  <div class="absolute inset-0 grid-bg opacity-30"></div>
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-brand-600/20 rounded-full blur-[100px]"></div>
+
+  <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center reveal">
+    <div class="inline-flex items-center gap-2 badge px-4 py-2 rounded-full text-xs font-medium text-brand-300 mb-8">
+      <span class="w-2 h-2 bg-brand-400 rounded-full dot-pulse inline-block"></span>
+      Start For Free Today
+    </div>
+    <h2 class="font-display text-5xl sm:text-6xl lg:text-7xl font-800 text-white leading-[1.05] mb-6">
+      Stop Losing Leads.<br /><span class="text-gradient text-glow">Start Closing More.</span>
+    </h2>
+    <p class="text-slate-400 text-xl leading-relaxed mb-12 max-w-2xl mx-auto">
+      Join 5,000+ sales teams that trust LeadFlow to grow their business. Set up in minutes. No credit card required.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-5 justify-center">
+      <a href="#" class="btn-primary px-10 py-5 rounded-2xl text-base font-semibold text-white inline-flex items-center justify-center gap-3 glow-green">
+        <span><i class="fa-solid fa-rocket mr-1.5"></i>Start Free Trial — 14 Days</span>
+      </a>
+      <a href="#" class="btn-outline px-10 py-5 rounded-2xl text-base font-semibold inline-flex items-center justify-center gap-3">
+        <i class="fa-solid fa-phone text-brand-400"></i> Contact Sales
+      </a>
+    </div>
+    <p class="text-slate-600 text-sm mt-6">No credit card · Free 14-day trial · Cancel anytime</p>
+  </div>
+</section>
+
+<!-- ========== FOOTER ========== -->
+<footer class="border-t border-white/7 bg-slate-950/80 pt-16 pb-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 mb-14">
+      <!-- Brand -->
+      <div class="lg:col-span-2">
+        <a href="#" class="flex items-center gap-2.5 mb-5">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
+            <i class="fa-solid fa-bolt text-white text-sm"></i>
+          </div>
+          <span class="font-display font-800 text-xl text-white">Lead<span class="text-gradient">Flow</span></span>
+        </a>
+        <p class="text-slate-400 text-sm leading-relaxed mb-6 max-w-xs">The modern lead management platform built for high-growth sales teams. Capture, track, and convert more leads — faster.</p>
+        <div class="flex items-center gap-3">
+          <a href="#" class="w-9 h-9 rounded-xl glass flex items-center justify-center text-slate-400 hover:text-white hover:border-brand-500/30 transition-all"><i class="fa-brands fa-x-twitter text-sm"></i></a>
+          <a href="#" class="w-9 h-9 rounded-xl glass flex items-center justify-center text-slate-400 hover:text-white transition-all"><i class="fa-brands fa-linkedin-in text-sm"></i></a>
+          <a href="#" class="w-9 h-9 rounded-xl glass flex items-center justify-center text-slate-400 hover:text-white transition-all"><i class="fa-brands fa-instagram text-sm"></i></a>
+          <a href="#" class="w-9 h-9 rounded-xl glass flex items-center justify-center text-slate-400 hover:text-white transition-all"><i class="fa-brands fa-youtube text-sm"></i></a>
+        </div>
+      </div>
+
+      <!-- Product links -->
+      <div>
+        <p class="font-display font-600 text-white text-sm mb-5">Product</p>
+        <ul class="space-y-3">
+          <li><a href="#features" class="text-slate-400 hover:text-white text-sm transition-colors">Features</a></li>
+          <li><a href="#pricing" class="text-slate-400 hover:text-white text-sm transition-colors">Pricing</a></li>
+          <li><a href="#" class="text-slate-400 hover:text-white text-sm transition-colors">Integrations</a></li>
+          <li><a href="#" class="text-slate-400 hover:text-white text-sm transition-colors">Changelog</a></li>
+          <li><a href="#" class="text-slate-400 hover:text-white text-sm transition-colors">Roadmap</a></li>
+          <li><a href="#" class="text-slate-400 hover:text-white text-sm transition-colors">API Docs</a></li>
+        </ul>
+      </div>
+
+      <!-- Company links -->
+      <div>
+        <p class="font-display font-600 text-white text-sm mb-5">Company</p>
+        <ul class="space-y-3">
+          <li><a href="#" class="text-slate-400 hover:text-white text-sm transition-colors">About Us</a></li>
+          <li><a href="#" class="text-slate-400 hover:text-white text-sm transition-colors">Blog</a></li>
+          <li><a href="#" class="text-slate-400 hover:text-white text-sm transition-colors">Careers <span class="text-brand-400 text-xs ml-1.5">Hiring!</span></a></li>
+          <li><a href="#" class="text-slate-400 hover:text-white text-sm transition-colors">Press</a></li>
+          <li><a href="#" class="text-slate-400 hover:text-white text-sm transition-colors">Partners</a></li>
+          <li><a href="#" class="text-slate-400 hover:text-white text-sm transition-colors">Security</a></li>
+        </ul>
+      </div>
+
+      <!-- Contact -->
+      <div>
+        <p class="font-display font-600 text-white text-sm mb-5">Contact</p>
+        <ul class="space-y-3">
+          <li class="flex items-center gap-2.5 text-slate-400 text-sm">
+            <i class="fa-solid fa-envelope text-brand-500 w-4"></i>
+            hello@leadflow.io
+          </li>
+          <li class="flex items-center gap-2.5 text-slate-400 text-sm">
+            <i class="fa-solid fa-phone text-brand-500 w-4"></i>
+            +1 (800) 555-0199
+          </li>
+          <li class="flex items-start gap-2.5 text-slate-400 text-sm">
+            <i class="fa-solid fa-location-dot text-brand-500 w-4 mt-0.5"></i>
+            123 Market Street, Suite 400<br/>San Francisco, CA 94105
+          </li>
+          <li class="mt-4">
+            <a href="#" class="btn-primary px-5 py-2.5 rounded-xl text-xs font-medium text-white inline-block"><span><i class="fa-solid fa-headset mr-1.5"></i>Live Chat Support</span></a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="border-t border-white/7 pt-7 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p class="text-slate-500 text-sm">© 2025 LeadFlow, Inc. All rights reserved.</p>
+      <div class="flex items-center gap-6">
+        <a href="#" class="text-slate-500 hover:text-slate-300 text-xs transition-colors">Privacy Policy</a>
+        <a href="#" class="text-slate-500 hover:text-slate-300 text-xs transition-colors">Terms of Service</a>
+        <a href="#" class="text-slate-500 hover:text-slate-300 text-xs transition-colors">Cookie Policy</a>
+        <a href="#" class="text-slate-500 hover:text-slate-300 text-xs transition-colors">GDPR</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ========== JAVASCRIPT ========== -->
+<script>
+// Navbar scroll effect
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 60) navbar.classList.add('nav-scrolled');
+  else navbar.classList.remove('nav-scrolled');
+});
+
+// Mobile menu toggle
+const menuToggle = document.getElementById('menu-toggle');
+const mobileMenu = document.getElementById('mobile-menu');
+const menuIcon = document.getElementById('menu-icon');
+let menuOpen = false;
+
+menuToggle.addEventListener('click', () => {
+  menuOpen = !menuOpen;
+  mobileMenu.classList.toggle('open', menuOpen);
+  menuIcon.className = menuOpen ? 'fa-solid fa-xmark text-xl' : 'fa-solid fa-bars text-xl';
+});
+
+// Close mobile menu on link click
+document.querySelectorAll('.mobile-link').forEach(link => {
+  link.addEventListener('click', () => {
+    menuOpen = false;
+    mobileMenu.classList.remove('open');
+    menuIcon.className = 'fa-solid fa-bars text-xl';
+  });
+});
+
+// FAQ accordion
+document.querySelectorAll('.faq-trigger').forEach(trigger => {
+  trigger.addEventListener('click', () => {
+    const answer = trigger.nextElementSibling;
+    const icon = trigger.querySelector('.faq-icon');
+    const isOpen = answer.classList.contains('open');
+
+    // Close all
+    document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('open'));
+    document.querySelectorAll('.faq-icon').forEach(i => i.classList.remove('open'));
+
+    // Open clicked if was closed
+    if (!isOpen) {
+      answer.classList.add('open');
+      icon.classList.add('open');
+    }
+  });
+});
+
+// Billing toggle
+let isYearly = false;
+const prices = {
+  starter: { monthly: '$29', yearly: '$23' },
+  pro: { monthly: '$79', yearly: '$63' },
+};
+
+function toggleBilling() {
+  isYearly = !isYearly;
+  const dot = document.getElementById('toggle-dot');
+  dot.style.transform = isYearly ? 'translateX(28px)' : 'translateX(0)';
+
+  document.getElementById('starter-price').textContent = isYearly ? prices.starter.yearly : prices.starter.monthly;
+  document.getElementById('pro-price').textContent = isYearly ? prices.pro.yearly : prices.pro.monthly;
+}
+
+// Scroll reveal
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+
+document.querySelectorAll('.reveal, .reveal-left, .reveal-right').forEach(el => {
+  revealObserver.observe(el);
+});
+
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    const href = this.getAttribute('href');
+    if (href === '#') return;
+    e.preventDefault();
+    const target = document.querySelector(href);
+    if (target) {
+      const offset = 80;
+      const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  });
+});
+</script>
+</body>
+</html>
